@@ -2,7 +2,7 @@ import Busboy from 'busboy'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-const GEMINI_MODEL = 'gemini-2.5-flash'
+const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
 function parseMultipartImage(req) {
   return new Promise((resolve, reject) => {
@@ -90,16 +90,24 @@ function buildHeatmapSvg(focusRegions, abnormal) {
   return `data:image/svg+xml;base64,${Buffer.from(svg, 'utf8').toString('base64')}`
 }
 
+function parseJsonResponse(rawText) {
+  const cleaned = rawText
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+  return JSON.parse(cleaned)
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'Method not allowed. Use POST.' })
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
     return res.status(503).json({
-      error: 'GEMINI_API_KEY is not configured. Add it in Vercel Environment Variables to enable live image analysis.',
+      error: 'GROQ_API_KEY is not configured. Add it in Vercel Environment Variables to enable live image analysis.',
     })
   }
 
@@ -115,79 +123,56 @@ export default async function handler(req, res) {
     'Carefully examine the provided microscopic cervical cell / Pap smear image.',
     'Assess whether cellular features appear Normal or Abnormal (e.g., enlarged or irregular nuclei, hyperchromasia, high nucleus-to-cytoplasm ratio, nuclear pleomorphism, or atypical clusters).',
     'If the image is not clearly a cytology/microscopy image, still evaluate what is visible and reflect lower confidence via uncertainty.',
-    'Identify 1 to 3 (x, y) percentage coordinates (0-100 from top-left) of the most visually salient cell/nucleus regions that informed your assessment.',
-    'Return ONLY valid JSON matching the schema.',
+    'Return ONLY a single JSON object with these exact keys:',
+    '- "label": "Normal" or "Abnormal"',
+    '- "probability": number from 0.01 to 0.99 (raw abnormal likelihood)',
+    '- "calibratedProbability": number from 0.01 to 0.99 (calibrated abnormal likelihood; >= 0.50 means Abnormal, < 0.50 means Normal)',
+    '- "uncertainty": number from 0.02 to 0.45',
+    '- "reasoning": concise 1-2 sentence visual observation of the cellular and nuclear features seen in this image',
+    '- "focusRegions": array of 1 to 3 objects, each with { "x": number 0-100, "y": number 0-100, "radius": number 10-32, "intensity": number 0.4-1.0 } marking the key cell/nucleus regions from top-left.',
   ].join(' ')
 
-  const geminiPayload = {
-    contents: [
-      {
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: parsed.mimeType,
-              data: parsed.buffer.toString('base64'),
-            },
-          },
-        ],
-      },
-    ],
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: 'OBJECT',
-        properties: {
-          label: { type: 'STRING', enum: ['Normal', 'Abnormal'] },
-          probability: { type: 'NUMBER' },
-          calibratedProbability: { type: 'NUMBER' },
-          uncertainty: { type: 'NUMBER' },
-          reasoning: { type: 'STRING' },
-          focusRegions: {
-            type: 'ARRAY',
-            items: {
-              type: 'OBJECT',
-              properties: {
-                x: { type: 'NUMBER' },
-                y: { type: 'NUMBER' },
-                radius: { type: 'NUMBER' },
-                intensity: { type: 'NUMBER' },
-              },
-              required: ['x', 'y', 'radius', 'intensity'],
-            },
-          },
-        },
-        required: ['label', 'probability', 'calibratedProbability', 'uncertainty', 'reasoning', 'focusRegions'],
-      },
-    },
-  }
+  const dataUrl = `data:${parsed.mimeType};base64,${parsed.buffer.toString('base64')}`
 
   try {
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(geminiPayload),
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
-    )
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        temperature: 0.1,
+        max_tokens: 512,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      }),
+    })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
+    if (!groqResponse.ok) {
+      const errorText = await groqResponse.text()
       return res.status(502).json({
-        error: `Vision analysis service returned ${geminiResponse.status}.`,
+        error: `Vision analysis service returned ${groqResponse.status}.`,
         detail: errorText.slice(0, 300),
       })
     }
 
-    const geminiData = await geminiResponse.json()
-    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text
+    const groqData = await groqResponse.json()
+    const rawText = groqData?.choices?.[0]?.message?.content
     if (!rawText) {
       return res.status(502).json({ error: 'The analysis service returned an empty response.' })
     }
 
-    const analysis = JSON.parse(rawText)
+    const analysis = parseJsonResponse(rawText)
     const threshold = 0.5
     const probability = Number(clamp(analysis.probability, 0.01, 0.99).toFixed(4))
     const calibratedProbability = Number(clamp(analysis.calibratedProbability, 0.01, 0.99).toFixed(4))
