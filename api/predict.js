@@ -2,7 +2,7 @@ import Busboy from 'busboy'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
+const GROQ_MODEL = 'qwen/qwen3.8-27b'
 
 function parseMultipartImage(req) {
   return new Promise((resolve, reject) => {
