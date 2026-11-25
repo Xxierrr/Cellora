@@ -1,0 +1,47 @@
+{
+  "lastUpdated": "November 2026",
+  "primaryModel": "Cellora Ensemble",
+  "evaluationNote": "Illustrative demonstration metrics for interface development. Replace with held-out evaluation results before any research or clinical use.",
+  "models": [
+    { "name": "Cellora Ensemble", "sensitivity": 94.8, "specificity": 92.4, "auroc": 0.973, "auprc": 0.951, "ece": 2.8, "type": "Proposed" },
+    { "name": "ResNet-50", "sensitivity": 92.4, "specificity": 90.8, "auroc": 0.961, "auprc": 0.934, "ece": 4.1, "type": "Baseline" },
+    { "name": "DenseNet-121", "sensitivity": 91.6, "specificity": 91.1, "auroc": 0.958, "auprc": 0.928, "ece": 4.6, "type": "Baseline" },
+    { "name": "EfficientNet-B0", "sensitivity": 90.8, "specificity": 89.7, "auroc": 0.949, "auprc": 0.916, "ece": 5.2, "type": "Baseline" },
+    { "name": "Logistic regression", "sensitivity": 81.2, "specificity": 78.5, "auroc": 0.864, "auprc": 0.802, "ece": 8.7, "type": "Baseline" }
+  ],
+  "roc": [
+    { "fpr": 0, "ensemble": 0, "resnet": 0, "baseline": 0 },
+    { "fpr": 0.05, "ensemble": 0.71, "resnet": 0.64, "baseline": 0.05 },
+    { "fpr": 0.1, "ensemble": 0.83, "resnet": 0.77, "baseline": 0.1 },
+    { "fpr": 0.15, "ensemble": 0.89, "resnet": 0.84, "baseline": 0.15 },
+    { "fpr": 0.2, "ensemble": 0.92, "resnet": 0.88, "baseline": 0.2 },
+    { "fpr": 0.3, "ensemble": 0.96, "resnet": 0.93, "baseline": 0.3 },
+    { "fpr": 0.4, "ensemble": 0.976, "resnet": 0.96, "baseline": 0.4 },
+    { "fpr": 0.5, "ensemble": 0.986, "resnet": 0.975, "baseline": 0.5 },
+    { "fpr": 0.65, "ensemble": 0.994, "resnet": 0.987, "baseline": 0.65 },
+    { "fpr": 0.8, "ensemble": 0.998, "resnet": 0.995, "baseline": 0.8 },
+    { "fpr": 1, "ensemble": 1, "resnet": 1, "baseline": 1 }
+  ],
+  "pr": [
+    { "recall": 0, "ensemble": 1, "resnet": 1, "baseline": 0.44 },
+    { "recall": 0.1, "ensemble": 0.998, "resnet": 0.995, "baseline": 0.44 },
+    { "recall": 0.2, "ensemble": 0.994, "resnet": 0.989, "baseline": 0.44 },
+    { "recall": 0.35, "ensemble": 0.989, "resnet": 0.979, "baseline": 0.44 },
+    { "recall": 0.5, "ensemble": 0.982, "resnet": 0.965, "baseline": 0.44 },
+    { "recall": 0.65, "ensemble": 0.974, "resnet": 0.944, "baseline": 0.44 },
+    { "recall": 0.75, "ensemble": 0.965, "resnet": 0.918, "baseline": 0.44 },
+    { "recall": 0.85, "ensemble": 0.947, "resnet": 0.87, "baseline": 0.44 },
+    { "recall": 0.92, "ensemble": 0.91, "resnet": 0.79, "baseline": 0.44 },
+    { "recall": 0.97, "ensemble": 0.81, "resnet": 0.67, "baseline": 0.44 },
+    { "recall": 1, "ensemble": 0.44, "resnet": 0.44, "baseline": 0.44 }
+  ],
+  "confusionMatrix": {
+    "labels": ["Normal", "Abnormal"],
+    "values": [[291, 24], [13, 237]]
+  },
+  "splits": [
+    { "name": "Training", "value": 70, "images": 2834, "color": "#67324c" },
+    { "name": "Validation", "value": 15, "images": 607, "color": "#b97595" },
+    { "name": "Test", "value": 15, "images": 608, "color": "#2d8a7d" }
+  ]
+}
