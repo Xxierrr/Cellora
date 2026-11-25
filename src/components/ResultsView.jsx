@@ -80,7 +80,7 @@ export default function ResultsView({ file, imageUrl, result, onReset }) {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`data-label ${abnormal ? '!text-red-700 dark:!text-red-300' : '!text-teal-700 dark:!text-teal-300'}`}>Screening result</span>
-                <span className="rounded-full border border-line/70 bg-surface/70 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted">Demo model</span>
+                <span className="rounded-full border border-line/70 bg-surface/70 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted">AI screening aid</span>
               </div>
               <h2 id="result-heading" className={`mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl ${abnormal ? 'text-red-900 dark:text-red-100' : 'text-teal-900 dark:text-teal-100'}`}>{finding}</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{abnormal ? 'The model found cellular patterns that need professional review. This does not mean that you have cancer.' : 'The model did not find patterns associated with abnormal cells in this image. Continue routine screening and clinical care.'}</p>
@@ -121,8 +121,7 @@ export default function ResultsView({ file, imageUrl, result, onReset }) {
             <div className="relative aspect-square overflow-hidden rounded-xl border border-line bg-plum-100 dark:bg-plum-950">
               <img src={imageUrl} alt="Cervical cell sample with model attention heatmap" className="h-full w-full object-cover" />
               {showOverlay && <img src={result.heatmapBase64} alt="" aria-hidden="true" className="heatmap-layer absolute inset-0 h-full w-full object-cover transition-opacity duration-300" style={{ opacity: opacity / 100 }} />}
-              {showOverlay && <div className="pointer-events-none absolute left-[52%] top-[27%] h-[30%] w-[32%] rounded-full border border-white/90 shadow-[0_0_0_4px_rgba(255,255,255,.18)]"><span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-white" /></div>}
-              <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-plum-950/75 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm"><Eye size={12} /> {showOverlay ? 'Nucleus region highlighted' : 'Overlay hidden'}</span>
+              <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-plum-950/75 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm"><Eye size={12} /> {showOverlay ? 'Attention region highlighted' : 'Overlay hidden'}</span>
             </div>
           </figure>
         </div>
@@ -141,7 +140,7 @@ export default function ResultsView({ file, imageUrl, result, onReset }) {
 
         <div className="mt-6 flex gap-4 rounded-xl border border-plum-100 bg-plum-50/60 p-5 dark:border-plum-900 dark:bg-plum-950/30">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-plum-100 text-plum-700 dark:bg-plum-900 dark:text-plum-300"><Focus size={18} /></span>
-          <div><h3 className="text-sm font-bold">What am I looking at?</h3><p className="mt-1.5 text-sm leading-6 text-muted">The model focused on the highlighted nucleus region and nearby cytoplasm. Warmer colours show stronger influence on this output; they do not mark cancer cells or define a clinical boundary.</p></div>
+          <div><h3 className="text-sm font-bold">What am I looking at?</h3><p className="mt-1.5 text-sm leading-6 text-muted">{result.reasoning ? `${result.reasoning} ` : ''}Warmer colours show stronger influence on this output; they do not mark cancer cells or define a clinical boundary.</p></div>
         </div>
       </Reveal>
 

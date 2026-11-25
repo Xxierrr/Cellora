@@ -149,7 +149,7 @@ export default function Analyse() {
               <section className="card mt-6 p-5 sm:p-7" aria-labelledby="samples-heading">
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><h2 id="samples-heading" className="font-serif text-2xl font-medium">No image handy? Try a sample.</h2><p className="mt-1.5 text-xs text-muted">Choose a prepared crop to explore the complete analysis experience.</p></div><span className="text-[10px] font-semibold text-muted">6 demo images</span></div>
                 <SampleGallery onSelect={selectFile} selectedId={selectedSample} />
-                <p className="mt-4 text-[10px] leading-5 text-muted">Sample artwork is synthetic and provided for interface demonstration only. Results are deterministic mock outputs.</p>
+                <p className="mt-4 text-[10px] leading-5 text-muted">Sample artwork is synthetic and provided for interface demonstration only. Selected samples are sent to the configured analysis service just like uploaded images.</p>
               </section>
             )}
 
